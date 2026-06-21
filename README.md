@@ -1,91 +1,92 @@
 # declaude
 
-**Deteksi & hapus atribusi Claude/AI dari repository git** — buang jejak seperti
-`Co-Authored-By: Claude <noreply@anthropic.com>` atau baris _"Generated with
-Claude Code"_ dari **seluruh riwayat commit**, **tanpa menyentuh kode** maupun
-**author** commit-mu.
+**Detect & remove Claude/AI attribution from git repositories** — strip traces
+like `Co-Authored-By: Claude <noreply@anthropic.com>` or _"Generated with Claude
+Code"_ lines from your **entire commit history**, **without touching your code**
+or your **commit authorship**.
 
-Dibuat dari pengalaman membersihkan repo sungguhan, jadi sudah memperhitungkan
-jebakan yang biasa bikin repot:
+Built from real-world repo cleanups, so it already handles the traps that
+usually cause trouble:
 
-- 🔒 **Menjaga perubahan belum-commit (WIP)** — di-backup lalu dikembalikan.
-- 🌿 **Repo multi-branch** — push **semua** branch terdampak, bukan cuma `main`.
-- 💾 **Backup bundle off-repo** sebelum rewrite (bisa dipulihkan penuh).
-- 🙈 **Token di URL remote tak pernah dicetak.**
-- ✅ **Verifikasi server-side** via `gh` setelah push.
+- 🔒 **Preserves uncommitted changes (WIP)** — backed up, then restored.
+- 🌿 **Multi-branch repos** — force-pushes **every** affected branch, not just `main`.
+- 💾 **Off-repo bundle backup** before rewriting (fully restorable).
+- 🙈 **A token embedded in the remote URL is never printed.**
+- ✅ **Server-side verification** via `gh` after pushing.
 
-## Kenapa muncul `@claude` di Contributors GitHub?
+## Why does `@claude` show up in GitHub Contributors?
 
-Tool AI sering menambahkan trailer `Co-Authored-By: Claude …` ke pesan commit.
-GitHub membangun grafik **Contributors dari pesan commit di default branch**, jadi
-selama trailer itu ada di history, `@claude` ikut terdaftar. Menghapusnya butuh
-**rewrite history + force-push** — itulah yang dilakukan `declaude clean`.
+AI tools often append a `Co-Authored-By: Claude …` trailer to commit messages.
+GitHub builds the **Contributors graph from commit messages on the default
+branch**, so as long as that trailer exists in history, `@claude` stays listed.
+Removing it requires a **history rewrite + force-push** — exactly what
+`declaude clean` does.
 
-## Pasang
+## Install
 
 ```bash
-# prasyarat
-pipx install git-filter-repo      # atau: pip install --user git-filter-repo
-# gh (GitHub CLI) opsional — untuk scan akun & verifikasi server
+# prerequisites
+pipx install git-filter-repo      # or: pip install --user git-filter-repo
+# gh (GitHub CLI) is optional — for account scans & server verification
 
-# pasang declaude
-git clone <repo-ini> ~/declaude && ~/declaude/install.sh
-# atau langsung:
+# install declaude
+git clone https://github.com/ediiloupatty/declaude ~/declaude && ~/declaude/install.sh
+# or, from the project folder:
 ./install.sh
 ```
 
-`install.sh` menaruh symlink `declaude` di `~/.local/bin`.
+`install.sh` symlinks `declaude` into `~/.local/bin`.
 
-## Pakai
+## Usage
 
 ```bash
-# 1) Lihat repo mana saja yang punya jejak Claude (READ-ONLY, aman)
-declaude scan ~/project            # scan semua repo di bawah folder
-declaude scan ~/project --branches # rincikan per-branch
+# 1) See which repos contain Claude traces (READ-ONLY, safe)
+declaude scan ~/project            # scan all repos under a folder
+declaude scan ~/project --branches # break down per branch
 
-# 2) Lihat rencana untuk satu repo tanpa mengubah apa pun
+# 2) Preview the plan for one repo without changing anything
 declaude clean ~/project/app --dry-run
 
-# 3) Bersihkan history lokal saja (belum push)
+# 3) Clean local history only (no push)
 declaude clean ~/project/app
 
-# 4) Bersihkan + force-push semua branch terdampak ke GitHub
+# 4) Clean + force-push every affected branch to GitHub
 declaude clean ~/project/app --push
 
-# 5) Cegah kambuh: matikan atribusi Claude Code ke depan
+# 5) Prevent recurrence: turn off Claude Code attribution going forward
 declaude prevent
 ```
 
-Setiap `clean` membuat **backup bundle** di `~/.declaude-backups/` lebih dulu.
-Pulihkan kapan saja:
+Every `clean` first writes a **backup bundle** to `~/.declaude-backups/`.
+Restore at any time:
 
 ```bash
-git -C <repo> fetch ~/.declaude-backups/<nama>.bundle '*:*'
+git -C <repo> fetch ~/.declaude-backups/<name>.bundle '*:*'
 ```
 
-## Catatan jujur
+## Honest caveats
 
-- **Author Claude (langka).** Bila ada commit yang _author_-nya Claude (bukan
-  sekadar co-author), `declaude` memberi peringatan tapi tidak mengubahnya —
-  gunakan `git filter-repo --mailmap` untuk menulis ulang author.
-- **PR yang sudah ditutup.** GitHub menyimpan commit lama di `refs/pull/N/head`
-  yang **tak bisa dihapus user**. Grafik Contributors dihitung dari default
-  branch (sudah bersih setelah `clean --push`), jadi `@claude` semestinya tetap
-  hilang; bila membandel, hanya GitHub Support yang bisa purge cache PR ref.
-- **Cache UI GitHub.** Setelah `clean --push`, `@claude` bisa bertahan beberapa
-  saat di tampilan karena cache. Force-push sudah memicu regen; cek di Incognito.
+- **Claude authorship (rare).** If a commit's _author_ is Claude (not just a
+  co-author), `declaude` warns but does not change it — use
+  `git filter-repo --mailmap` to rewrite authorship.
+- **Closed pull requests.** GitHub keeps old commits in `refs/pull/N/head`,
+  which **users cannot delete**. The Contributors graph is computed from the
+  default branch (clean after `clean --push`), so `@claude` should still
+  disappear; if it lingers, only GitHub Support can purge the PR-ref cache.
+- **GitHub UI cache.** After `clean --push`, `@claude` may linger briefly in the
+  UI due to caching. The force-push already triggers a regen; check in Incognito.
 
-## Perintah
+## Commands
 
-| Perintah | Fungsi |
+| Command | Purpose |
 |---|---|
-| `declaude scan [PATH] [--branches] [--depth N]` | Cari repo & laporkan jejak (read-only). |
-| `declaude clean REPO [--push] [--yes] [--dry-run] [--backup-dir DIR]` | Rewrite history + (opsional) push. |
-| `declaude prevent` | Set `includeCoAuthoredBy:false` di `~/.claude/settings.json`. |
+| `declaude scan [PATH] [--branches] [--depth N]` | Find repos & report traces (read-only). |
+| `declaude clean REPO [--push] [--yes] [--dry-run] [--backup-dir DIR]` | Rewrite history + (optionally) push. |
+| `declaude prevent` | Set `includeCoAuthoredBy:false` in `~/.claude/settings.json`. |
 
-## Prasyarat
+## Requirements
 
 - `git`
-- `git-filter-repo` (untuk `clean`)
-- `gh` (opsional — scan akun GitHub & verifikasi server)
+- `git-filter-repo` (for `clean`)
+- `gh` (optional — GitHub account scans & server verification)
 - Python 3.8+
