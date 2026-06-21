@@ -41,8 +41,9 @@ git clone https://github.com/ediiloupatty/declaude ~/declaude && ~/declaude/inst
 
 ```bash
 # 1) See which repos contain Claude traces (READ-ONLY, safe)
-declaude scan ~/project            # scan all repos under a folder
-declaude scan ~/project --branches # break down per branch
+declaude scan ~/project              # scan all repos under a folder (local)
+declaude scan ~/project --branches   # break down per branch
+declaude scan --user ediiloupatty    # scan a whole GitHub account (server-side, needs gh)
 
 # 2) Preview the plan for one repo without changing anything
 declaude clean ~/project/app --dry-run
@@ -80,7 +81,8 @@ git -C <repo> fetch ~/.declaude-backups/<name>.bundle '*:*'
 
 | Command | Purpose |
 |---|---|
-| `declaude scan [PATH] [--branches] [--depth N]` | Find repos & report traces (read-only). |
+| `declaude scan [PATH] [--branches] [--depth N]` | Find local repos & report traces (read-only). |
+| `declaude scan --user ACCOUNT` | Scan a whole GitHub account server-side (default branch, needs `gh`). |
 | `declaude clean REPO [--push] [--yes] [--dry-run] [--backup-dir DIR]` | Rewrite history + (optionally) push. |
 | `declaude prevent` | Set `includeCoAuthoredBy:false` in `~/.claude/settings.json`. |
 
@@ -90,3 +92,7 @@ git -C <repo> fetch ~/.declaude-backups/<name>.bundle '*:*'
 - `git-filter-repo` (for `clean`)
 - `gh` (optional — GitHub account scans & server verification)
 - Python 3.8+
+
+## License
+
+[MIT](LICENSE) © ediiloupatty

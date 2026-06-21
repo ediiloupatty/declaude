@@ -167,7 +167,51 @@ def is_dirty(repo: str) -> int:
 
 
 # ── scan ──────────────────────────────────────────────────────────────────────
+def default_branch_hits(slug: str) -> int:
+    """Traced commits on a repo's default branch (via gh). -1 if unreadable/empty."""
+    rc, o = run(["gh", "api", f"repos/{slug}/commits", "--paginate", "--jq",
+                 '[.[]|select(.commit.message|test("(?i)co-authored-by:.*(claude|anthropic)|generated with claude"))]|length'])
+    if rc != 0:
+        return -1
+    return sum(int(x) for x in o.split("\n") if x.strip().lstrip("-").isdigit())
+
+
+def scan_user(user: str):
+    """Scan every repo of a GitHub account server-side (default branch)."""
+    if not have("gh"):
+        die("scan --user requires the GitHub CLI 'gh' (and `gh auth login`).")
+    rc, out = run(["gh", "repo", "list", user, "--limit", "1000",
+                   "--json", "nameWithOwner", "--jq", ".[].nameWithOwner"])
+    if rc != 0:
+        die(f"failed to list repos for {user}:\n{out}")
+    slugs = [s for s in out.split("\n") if s.strip()]
+    if not slugs:
+        info(f"no repositories found for {user}.")
+        return
+    print(col(f"\nScanning {len(slugs)} repo(s) for @{user} (server-side, default branch)\n", "b"))
+    dirty = 0
+    for slug in slugs:
+        n = default_branch_hits(slug)
+        if n < 0:
+            tag = col("empty/—", "d")
+        elif n == 0:
+            tag = col("CLEAN", "g")
+        else:
+            tag = col(f"{n} co-author", "y")
+            dirty += 1
+        print(f"  {tag:>22}  {col(slug, 'c')}")
+    print()
+    if dirty:
+        print(col(f"{dirty} repo(s) contain Claude traces on their default branch.", "y"))
+        print("Clone + clean each, e.g.:",
+              col("gh repo clone <slug> && declaude clean <slug> --push", "b"))
+    else:
+        print(col("All repositories are clean. 🎉", "g"))
+
+
 def cmd_scan(args):
+    if args.user:
+        return scan_user(args.user)
     root = args.path or os.getcwd()
     if not os.path.isdir(root):
         die(f"folder not found: {root}")
@@ -362,8 +406,9 @@ def main():
 
     s = sub.add_parser("scan", help="find repos + report Claude traces (read-only)")
     s.add_argument("path", nargs="?", help="root folder (default: cwd)")
-    s.add_argument("--branches", action="store_true", help="break down per branch")
-    s.add_argument("--depth", type=int, default=5, help="repo search depth")
+    s.add_argument("--user", help="scan a GitHub account's repos server-side (needs gh)")
+    s.add_argument("--branches", action="store_true", help="break down per branch (local scan)")
+    s.add_argument("--depth", type=int, default=5, help="repo search depth (local scan)")
     s.set_defaults(func=cmd_scan)
 
     c = sub.add_parser("clean", help="rewrite a repo's history & (optionally) push")
