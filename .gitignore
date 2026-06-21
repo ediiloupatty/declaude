@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.declaude-backups/
+*.bundle
+*.tar.gz
