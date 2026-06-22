@@ -1,24 +1,26 @@
 #!/usr/bin/env bash
-# declaude installer — symlink into ~/.local/bin (no system changes).
+# declaude installer.
+#
+# declaude is now a normal Python package, so the recommended install is just:
+#
+#     pip install declaude          # once published to PyPI
+#     pip install .                 # from this folder
+#     pip install git+https://github.com/ediiloupatty/declaude
+#
+# This script is a convenience wrapper around `pip install .` for people who
+# clone the repo and run ./install.sh out of habit.
 set -euo pipefail
 
-SRC="$(cd "$(dirname "$0")" && pwd)/declaude.py"
-BIN="${HOME}/.local/bin"
-DEST="${BIN}/declaude"
+cd "$(dirname "$0")"
 
-mkdir -p "$BIN"
-chmod +x "$SRC"
-ln -sf "$SRC" "$DEST"
-echo "✓ declaude installed: $DEST -> $SRC"
+PIP="${PIP:-pip}"
+command -v "$PIP" >/dev/null 2>&1 || PIP="pip3"
+command -v "$PIP" >/dev/null 2>&1 || { echo "✗ pip not found. Install Python 3.8+ and pip."; exit 1; }
 
-case ":$PATH:" in
-  *":$BIN:"*) ;;
-  *) echo "! Add to PATH:  export PATH=\"\$HOME/.local/bin:\$PATH\"" ;;
-esac
+echo "Installing declaude with: $PIP install --user ."
+"$PIP" install --user .
 
-command -v git-filter-repo >/dev/null 2>&1 \
-  || echo "! For 'declaude clean', install: pipx install git-filter-repo"
+echo "✓ declaude installed. Try: declaude --help"
+
 command -v gh >/dev/null 2>&1 \
-  || echo "! (optional) install GitHub CLI 'gh' for server-side verification."
-
-echo "Try: declaude scan ~/edi/project"
+  || echo "! Required: install GitHub CLI 'gh' (https://cli.github.com) and run 'gh auth login'."
