@@ -49,7 +49,20 @@ automatically — no manual setup. The one prerequisite pip can't install is the
 **GitHub CLI**, used to flush GitHub's Contributors-graph cache:
 
 ```bash
-# install gh from https://cli.github.com, then log in:
+# Windows (winget):
+winget install GitHub.cli
+
+# macOS (Homebrew):
+brew install gh
+
+# Linux: https://cli.github.com/manual/installation
+```
+
+> **Windows note:** after `winget install GitHub.cli`, **open a new terminal** before running `gh` — the current session won't see it yet.
+
+Then log in:
+
+```bash
 gh auth login
 ```
 
