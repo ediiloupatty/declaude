@@ -56,23 +56,41 @@ gh auth login
 declaude checks for `gh` and a valid login up front and tells you exactly what's
 missing before it touches anything.
 
-### Windows
+### After installing on Windows — how to run it
 
-On Windows, pip prints a warning that the `Scripts` folder isn't on your `PATH`,
-so the `declaude` command won't be found in a new terminal. Two fixes:
+After `pip install declaude`, pip may print a warning that the `Scripts` folder
+**isn't on your PATH**. That's normal and harmless — it only means typing
+`declaude` directly might say *"command not found"*. Just run it like this and it
+always works:
 
-```powershell
-# Option A — automatic: run the PowerShell installer from a clone of this repo.
-# It pip-installs declaude AND adds the Scripts folder to your PATH for you.
-powershell -ExecutionPolicy Bypass -File .\install.ps1            # from the repo
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -FromPyPI  # install from PyPI
-
-# Option B — no install fix needed: call it as a module (PATH not required).
+```cmd
 python -m declaude OWNER/REPO
 ```
 
-After Option A, open a **new** terminal so the updated PATH takes effect, then
-`declaude --help` works like on macOS/Linux.
+That's the whole trick: put `python -m` in front. For example:
+
+```cmd
+python -m declaude ediiloupatty/my-repo
+python -m declaude --help
+```
+
+Prefer the short `declaude` command? Either install with **pipx**, which sets up
+PATH for you:
+
+```cmd
+python -m pip install --user pipx
+python -m pipx ensurepath
+pipx install declaude
+```
+
+…or run the included `install.ps1` from a clone of this repo (it adds the
+`Scripts` folder to your PATH automatically):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -FromPyPI
+```
+
+Then **open a new terminal** and `declaude` works on its own.
 
 ## Usage
 
