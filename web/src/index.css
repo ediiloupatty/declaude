@@ -1,0 +1,55 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Claude palette — warm cream + terracotta */
+  --bg: #faf9f5;
+  --bg2: #f3f1ea;
+  --bg3: #ebe8df;
+  --paper: #ffffff;
+  --border: #e6e2d6;
+  --border-strong: #d8d3c4;
+
+  --accent: #d97757;        /* Claude terracotta */
+  --accent-strong: #c15f3c;
+  --accent-soft: rgba(217, 119, 87, 0.12);
+  --accent-glow: rgba(217, 119, 87, 0.22);
+
+  --ink: #1f1e1d;
+  --text: #3d3a35;
+  --muted: #6b6760;
+  --faint: #97928a;
+
+  --green: #4f9d69;
+  --red: #d9534f;
+
+  --code-bg: #2b2925;
+  --code-text: #ece8df;
+  --code-faint: #8f897e;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Styrene B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 520px at 88% -8%, rgba(217, 119, 87, 0.10), transparent 62%),
+    radial-gradient(720px 460px at -6% 4%, rgba(217, 119, 87, 0.06), transparent 58%),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.012) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 22px 22px;
+  background-attachment: fixed, fixed, fixed;
+}
+
+code, pre {
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+}
+
+a { color: var(--accent-strong); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::selection { background: var(--accent-glow); }
