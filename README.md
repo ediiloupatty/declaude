@@ -94,6 +94,34 @@ Then **open a new terminal** and `declaude` works on its own.
 
 ## Usage
 
+Run `declaude --help` (or `python -m declaude --help` on Windows) any time to
+see the full reference:
+
+```text
+usage: declaude [-h] [--version] [-y] [--dry-run] [--no-refresh] [--no-backup]
+                target
+
+Remove Claude/AI attribution from a GitHub repo (clean history + force-push +
+refresh Contributors graph).
+
+positional arguments:
+  target        GitHub URL or OWNER/REPO slug
+
+options:
+  -h, --help    show this help message and exit
+  --version     show program's version number and exit
+  -y, --yes     skip confirmation
+  --dry-run     show the plan only
+  --no-refresh  don't push the empty commit that refreshes the contributors
+                graph
+  --no-backup   skip the restorable backup bundle before rewriting (not
+                recommended)
+
+Other: `declaude prevent` turns off Claude Code attribution going forward.
+```
+
+Examples:
+
 ```bash
 declaude ediiloupatty/my-repo                      # OWNER/REPO slug
 declaude https://github.com/ediiloupatty/my-repo   # full GitHub URL
