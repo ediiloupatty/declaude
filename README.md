@@ -56,6 +56,24 @@ gh auth login
 declaude checks for `gh` and a valid login up front and tells you exactly what's
 missing before it touches anything.
 
+### Windows
+
+On Windows, pip prints a warning that the `Scripts` folder isn't on your `PATH`,
+so the `declaude` command won't be found in a new terminal. Two fixes:
+
+```powershell
+# Option A — automatic: run the PowerShell installer from a clone of this repo.
+# It pip-installs declaude AND adds the Scripts folder to your PATH for you.
+powershell -ExecutionPolicy Bypass -File .\install.ps1            # from the repo
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -FromPyPI  # install from PyPI
+
+# Option B — no install fix needed: call it as a module (PATH not required).
+python -m declaude OWNER/REPO
+```
+
+After Option A, open a **new** terminal so the updated PATH takes effect, then
+`declaude --help` works like on macOS/Linux.
+
 ## Usage
 
 ```bash
