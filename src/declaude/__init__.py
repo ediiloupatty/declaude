@@ -40,7 +40,7 @@ import tempfile
 import time
 from pathlib import Path
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # Commit-message text considered a "Claude trace".
 DETECT_RE = re.compile(

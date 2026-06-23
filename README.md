@@ -36,7 +36,7 @@ already clean**, which is exactly what a previously-cleaned repo needs.
 pip install declaude        # installs the `declaude` command + git-filter-repo
 ```
 
-Not yet on PyPI? Install straight from GitHub:
+Want the latest unreleased changes? Install straight from GitHub:
 
 ```bash
 pip install git+https://github.com/ediiloupatty/declaude

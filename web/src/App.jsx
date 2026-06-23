@@ -111,7 +111,7 @@ function LandingPage({ onDocs }) {
     <>
       <section className="hero">
         <div className="hero-left">
-          <div className="badge"><span className="badge-dot" />v0.1.1 · open source</div>
+          <div className="badge"><span className="badge-dot" />v0.1.2 · open source</div>
           <h1>
             Remove <span className="strike mark">@claude</span> from your GitHub
           </h1>
