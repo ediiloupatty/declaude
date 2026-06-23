@@ -1,8 +1,44 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, createContext, useContext } from 'react'
 import './App.css'
+import { LANGS, SNIPPETS, makeT, detectLang } from './i18n'
+
+/* ── language context ── */
+const LangCtx = createContext({ lang: 'en', setLang: () => {}, t: (k) => k })
+const useT = () => useContext(LangCtx)
+
+/* ── tiny markup renderer: **bold**, `code`, [label](url) ── */
+function RichText({ children }) {
+  const text = children || ''
+  const re = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\)/g
+  const parts = []
+  let last = 0, m, key = 0
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    if (m[1] != null) parts.push(<strong key={key++}>{m[1]}</strong>)
+    else if (m[2] != null) parts.push(<code key={key++}>{m[2]}</code>)
+    else parts.push(
+      <a key={key++} href={m[4]} target="_blank" rel="noopener noreferrer">{m[3]}</a>
+    )
+    last = re.lastIndex
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return <>{parts}</>
+}
+
+/* ── language picker ── */
+function LangPicker() {
+  const { lang, setLang } = useT()
+  return (
+    <select className="lang-picker" value={lang}
+            onChange={(e) => setLang(e.target.value)} aria-label="Language">
+      {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+    </select>
+  )
+}
 
 /* ── copy-to-clipboard button ── */
 function CopyBtn({ text }) {
+  const { t } = useT()
   const [copied, setCopied] = useState(false)
   const copy = () => {
     navigator.clipboard.writeText(text)
@@ -11,13 +47,14 @@ function CopyBtn({ text }) {
   }
   return (
     <button className={`copy-btn${copied ? ' copied' : ''}`} onClick={copy}>
-      {copied ? 'copied' : 'copy'}
+      {copied ? t('common.copied') : t('common.copy')}
     </button>
   )
 }
 
 /* ── animated contributor-removal demo ── */
 function ContributorDemo() {
+  const { t } = useT()
   return (
     <div className="demo" aria-hidden="true">
       <div className="demo-bar">
@@ -53,7 +90,7 @@ function ContributorDemo() {
           </div>
         </div>
 
-        <div className="demo-toast">@claude removed from this repo</div>
+        <div className="demo-toast">{t('demo.toast')}</div>
       </div>
     </div>
   )
@@ -107,28 +144,25 @@ function Terminal() {
 
 /* ── landing page ── */
 function LandingPage({ onDocs }) {
+  const { t } = useT()
   return (
     <>
       <section className="hero">
         <div className="hero-left">
-          <div className="badge"><span className="badge-dot" />v0.1.2 · open source</div>
+          <div className="badge"><span className="badge-dot" />v0.1.2 · {t('hero.badge')}</div>
           <h1>
-            Remove <span className="strike mark">@claude</span> from your GitHub
+            {t('hero.titlePre')} <span className="strike mark">@claude</span> {t('hero.titlePost')}
           </h1>
-          <p className="sub">
-            Strip Claude/AI attribution from your entire commit history,
-            force-push the clean branches, and flush GitHub's Contributors
-            graph cache in one command.
-          </p>
+          <p className="sub">{t('hero.sub')}</p>
           <div className="install-box">
             <span className="prefix">$</span>
-            pip install declaude
-            <CopyBtn text="pip install declaude" />
+            {SNIPPETS.install}
+            <CopyBtn text={SNIPPETS.install} />
           </div>
           <div className="hero-actions">
-            <button className="btn btn-primary" onClick={onDocs}>Read the docs &rarr;</button>
+            <button className="btn btn-primary" onClick={onDocs}>{t('hero.docsBtn')} &rarr;</button>
             <a className="btn btn-outline" href="https://github.com/ediiloupatty/declaude"
-               target="_blank" rel="noopener noreferrer">View on GitHub</a>
+               target="_blank" rel="noopener noreferrer">{t('hero.ghBtn')}</a>
           </div>
         </div>
         <div className="hero-right">
@@ -139,17 +173,13 @@ function LandingPage({ onDocs }) {
       <section className="how">
         <div className="how-inner">
           <div className="how-text">
-            <span className="section-label">How it works</span>
-            <h2>One command, the full sequence</h2>
-            <p>
-              GitHub's Contributors graph is a cached view, so a force-push alone
-              won't update it. declaude runs the exact order that actually drops
-              <code> @claude</code>.
-            </p>
+            <span className="section-label">{t('how.label')}</span>
+            <h2>{t('how.title')}</h2>
+            <p><RichText>{t('how.p')}</RichText></p>
             <ul className="flow">
-              <li><span className="tick">1</span><span><b>Strip history.</b> Removes every Claude co-author trailer from all commits.</span></li>
-              <li><span className="tick">2</span><span><b>Flush cache.</b> Renames the default branch away and back to reset the graph.</span></li>
-              <li><span className="tick">3</span><span><b>Recompute.</b> Pushes an empty commit so GitHub rebuilds against clean history.</span></li>
+              <li><span className="tick">1</span><span><RichText>{t('how.step1')}</RichText></span></li>
+              <li><span className="tick">2</span><span><RichText>{t('how.step2')}</RichText></span></li>
+              <li><span className="tick">3</span><span><RichText>{t('how.step3')}</RichText></span></li>
             </ul>
           </div>
           <Terminal />
@@ -164,7 +194,7 @@ function LandingPage({ onDocs }) {
           </svg>
           github.com/ediiloupatty/declaude
         </a>
-        <p>MIT License · built for cleaning up after Claude Code</p>
+        <p>{t('footer.note')}</p>
       </footer>
     </>
   )
@@ -172,19 +202,20 @@ function LandingPage({ onDocs }) {
 
 /* ── docs page (with scroll-spy) ── */
 const NAV = [
-  { group: 'Getting Started', items: [
-    ['install', 'Install'], ['usage', 'Usage'], ['commands', 'Commands'],
+  { group: 'nav.group.start', items: [
+    ['install', 'nav.install'], ['usage', 'nav.usage'], ['commands', 'nav.commands'],
   ]},
-  { group: 'Reference', items: [
-    ['options', 'Options'], ['requirements', 'Requirements'], ['caveats', 'Caveats'],
-    ['backup', 'Backup & Restore'], ['prevent', 'Prevent'],
+  { group: 'nav.group.ref', items: [
+    ['options', 'nav.options'], ['requirements', 'nav.requirements'], ['caveats', 'nav.caveats'],
+    ['backup', 'nav.backup'], ['prevent', 'nav.prevent'],
   ]},
-  { group: 'Development', items: [
-    ['dev', 'Development'],
+  { group: 'nav.group.dev', items: [
+    ['dev', 'nav.development'],
   ]},
 ]
 
 function DocsPage({ onHome }) {
+  const { t } = useT()
   const [active, setActive] = useState('install')
 
   useEffect(() => {
@@ -207,13 +238,13 @@ function DocsPage({ onHome }) {
       <aside className="docs-sidebar">
         {NAV.map((g) => (
           <div key={g.group}>
-            <div className="docs-sidebar-label">{g.group}</div>
+            <div className="docs-sidebar-label">{t(g.group)}</div>
             <nav>
               {g.items.map(([id, label]) => (
                 <a key={id} href={`#${id}`}
                    className={active === id ? 'active' : ''}
                    onClick={() => setActive(id)}>
-                  {label}
+                  {t(label)}
                 </a>
               ))}
             </nav>
@@ -222,122 +253,91 @@ function DocsPage({ onHome }) {
       </aside>
 
       <main className="docs-content">
-        <button className="btn btn-ghost docs-mobile-back" onClick={onHome}>&larr; Back home</button>
+        <button className="btn btn-ghost docs-mobile-back" onClick={onHome}>&larr; {t('docs.back')}</button>
 
         <h1>declaude</h1>
-        <p className="lead">
-          Remove Claude/AI attribution from a GitHub repo in one command.
-          Strips co-author trailers from commit history, force-pushes clean branches,
-          and flushes GitHub's Contributors graph cache so <code>@claude</code> actually disappears.
-        </p>
+        <p className="lead"><RichText>{t('docs.lead')}</RichText></p>
 
-        <h2 id="install">Install</h2>
-        <pre><code>pip install declaude</code></pre>
-        <p>Not yet on PyPI? Install straight from GitHub:</p>
-        <pre><code>pip install git+https://github.com/ediiloupatty/declaude{'\n'}# or, from a local clone:{'\n'}pip install .</code></pre>
-        <p>
-          <code>pip</code> puts a <code>declaude</code> command on your PATH and
-          pulls in <code>git-filter-repo</code> automatically. The one prerequisite
-          pip can't install is the <strong>GitHub CLI</strong>, used to flush GitHub's
-          Contributors-graph cache:
-        </p>
-        <pre><code># Windows (winget):{'\n'}winget install GitHub.cli{'\n'}{'\n'}# macOS (Homebrew):{'\n'}brew install gh{'\n'}{'\n'}# Linux: https://cli.github.com/manual/installation</code></pre>
+        <h2 id="install">{t('nav.install')}</h2>
+        <pre><code>{SNIPPETS.install}</code></pre>
+        <p>{t('docs.install.p1')}</p>
+        <pre><code>{SNIPPETS.installGit}</code></pre>
+        <p><RichText>{t('docs.install.p2')}</RichText></p>
+        <pre><code>{SNIPPETS.ghInstall}</code></pre>
         <div className="callout">
-          <strong>Windows note:</strong> after <code>winget install GitHub.cli</code>,
-          open a <strong>new terminal</strong> before running <code>gh</code>; the
-          current session won't see it yet.
+          <strong>{t('docs.install.calloutLabel')}</strong> <RichText>{t('docs.install.callout')}</RichText>
         </div>
-        <p>Then log in:</p>
-        <pre><code>gh auth login</code></pre>
+        <p>{t('docs.install.p3')}</p>
+        <pre><code>{SNIPPETS.ghLogin}</code></pre>
 
-        <h3>After installing on Windows</h3>
-        <p>
-          After <code>pip install declaude</code>, pip may warn that the Scripts
-          folder isn't on your PATH. Run it like this and it always works:
-        </p>
-        <pre><code>python -m declaude OWNER/REPO{'\n'}python -m declaude --help</code></pre>
-        <p>
-          Prefer the short <code>declaude</code> command? The quickest fix is to let
-          declaude add its own install directory to your PATH, then open a new terminal:
-        </p>
-        <pre><code>python -m declaude path</code></pre>
-        <p>Or install with pipx, which sets up PATH for you:</p>
-        <pre><code>python -m pip install --user pipx{'\n'}python -m pipx ensurepath{'\n'}pipx install declaude</code></pre>
+        <h3>{t('docs.install.h3')}</h3>
+        <p><RichText>{t('docs.install.p4')}</RichText></p>
+        <pre><code>{SNIPPETS.winRun}</code></pre>
+        <p><RichText>{t('docs.install.p5')}</RichText></p>
+        <pre><code>{SNIPPETS.path}</code></pre>
+        <p>{t('docs.install.p6')}</p>
+        <pre><code>{SNIPPETS.pipx}</code></pre>
 
-        <h2 id="usage">Usage</h2>
-        <pre><code>declaude OWNER/REPO{'\n'}declaude https://github.com/OWNER/REPO{'\n'}{'\n'}declaude my-repo --dry-run     # show the plan, change nothing{'\n'}declaude my-repo -y            # skip the confirmation prompt{'\n'}declaude my-repo --no-refresh  # clean + push only, skip refresh commit{'\n'}declaude my-repo --no-backup   # skip backup bundle (not recommended){'\n'}{'\n'}declaude prevent               # turn off attribution going forward{'\n'}declaude --version             # print the installed version</code></pre>
-        <p>
-          The repo is cloned to a temp dir, cleaned, force-pushed, refreshed, then
-          discarded. You never clone by hand.
-        </p>
+        <h2 id="usage">{t('nav.usage')}</h2>
+        <pre><code>{SNIPPETS.usage}</code></pre>
+        <p>{t('docs.usage.p')}</p>
 
-        <h2 id="commands">Commands</h2>
+        <h2 id="commands">{t('nav.commands')}</h2>
         <div className="docs-table-wrap">
           <table className="docs-table">
-            <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+            <thead><tr><th>{t('docs.th.command')}</th><th>{t('docs.th.purpose')}</th></tr></thead>
             <tbody>
-              <tr><td><code>declaude TARGET [flags]</code></td><td>Clean history + force-push + refresh contributors graph. TARGET = GitHub URL or OWNER/REPO.</td></tr>
-              <tr><td><code>declaude path</code></td><td>Add declaude's install (Scripts) directory to your PATH so the bare <code>declaude</code> command works.</td></tr>
-              <tr><td><code>declaude prevent</code></td><td>Set <code>includeCoAuthoredBy:false</code> in <code>~/.claude/settings.json</code>.</td></tr>
-              <tr><td><code>declaude --version</code></td><td>Print the installed version.</td></tr>
+              <tr><td><code>declaude TARGET [flags]</code></td><td><RichText>{t('docs.cmd.main')}</RichText></td></tr>
+              <tr><td><code>declaude path</code></td><td><RichText>{t('docs.cmd.path')}</RichText></td></tr>
+              <tr><td><code>declaude prevent</code></td><td><RichText>{t('docs.cmd.prevent')}</RichText></td></tr>
+              <tr><td><code>declaude --version</code></td><td>{t('docs.cmd.version')}</td></tr>
             </tbody>
           </table>
         </div>
 
-        <h2 id="options">Options</h2>
+        <h2 id="options">{t('nav.options')}</h2>
         <div className="docs-table-wrap">
           <table className="docs-table">
-            <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+            <thead><tr><th>{t('docs.th.flag')}</th><th>{t('docs.th.desc')}</th></tr></thead>
             <tbody>
-              <tr><td><code>-y, --yes</code></td><td>Skip the confirmation prompt.</td></tr>
-              <tr><td><code>--dry-run</code></td><td>Show the plan only; change nothing.</td></tr>
-              <tr><td><code>--no-refresh</code></td><td>Clean + force-push only; skip the branch rename and refresh commit.</td></tr>
-              <tr><td><code>--no-backup</code></td><td>Skip the restorable backup bundle (not recommended).</td></tr>
-              <tr><td><code>--version</code></td><td>Print the installed version.</td></tr>
+              <tr><td><code>-y, --yes</code></td><td>{t('docs.opt.yes')}</td></tr>
+              <tr><td><code>--dry-run</code></td><td>{t('docs.opt.dryrun')}</td></tr>
+              <tr><td><code>--no-refresh</code></td><td>{t('docs.opt.norefresh')}</td></tr>
+              <tr><td><code>--no-backup</code></td><td>{t('docs.opt.nobackup')}</td></tr>
+              <tr><td><code>--version</code></td><td>{t('docs.cmd.version')}</td></tr>
             </tbody>
           </table>
         </div>
 
-        <h2 id="requirements">Requirements</h2>
+        <h2 id="requirements">{t('nav.requirements')}</h2>
         <ul>
-          <li>Python 3.8+ and <code>pip</code></li>
-          <li><code>git</code></li>
-          <li><code>gh</code> (GitHub CLI, logged in). Install separately from <a href="https://cli.github.com" target="_blank" rel="noopener noreferrer">cli.github.com</a></li>
-          <li><code>git-filter-repo</code>, installed automatically as a pip dependency</li>
+          <li><RichText>{t('docs.req.li1')}</RichText></li>
+          <li><RichText>{t('docs.req.li2')}</RichText></li>
+          <li><RichText>{t('docs.req.li3')}</RichText></li>
+          <li><RichText>{t('docs.req.li4')}</RichText></li>
         </ul>
-        <p>
-          <strong>Windows:</strong> works in PowerShell and Windows Terminal. ANSI
-          colors are enabled automatically; set <code>NO_COLOR=1</code> to disable.
-          <code>git</code>, <code>gh</code>, and Python must be on your PATH.
-        </p>
+        <p><RichText>{t('docs.req.p')}</RichText></p>
 
-        <h2 id="caveats">Honest caveats</h2>
+        <h2 id="caveats">{t('docs.caveats.h')}</h2>
         <ul>
-          <li><strong>Claude authorship (rare).</strong> If a commit's author is Claude (not just a co-author), declaude warns but does not change it. Use <code>git filter-repo --mailmap</code> to rewrite authorship.</li>
-          <li><strong>The refresh commit.</strong> declaude leaves one <code>chore: refresh GitHub contributors</code> empty commit on the default branch. It's harmless; drop it later with <code>git rebase</code>. Skip with <code>--no-refresh</code>.</li>
-          <li><strong>Shared repos.</strong> The flush renames the default branch and back. Collaborators may see GitHub's "default branch renamed" notice. Use <code>--no-refresh</code> if that's a problem.</li>
-          <li><strong>Graph lag.</strong> Even after the flush + refresh push, the Contributors graph can take a few minutes to update. Recheck in Incognito.</li>
-          <li><strong>Closed pull requests.</strong> GitHub keeps old commits in <code>refs/pull/N/head</code>, which users can't delete. If <code>@claude</code> persists after cleaning, only GitHub Support can purge the PR-ref cache.</li>
+          <li><RichText>{t('docs.cav.1')}</RichText></li>
+          <li><RichText>{t('docs.cav.2')}</RichText></li>
+          <li><RichText>{t('docs.cav.3')}</RichText></li>
+          <li><RichText>{t('docs.cav.4')}</RichText></li>
+          <li><RichText>{t('docs.cav.5')}</RichText></li>
         </ul>
 
-        <h2 id="backup">Backup & Restore</h2>
-        <p>
-          Before any rewrite, a backup bundle is written to{' '}
-          <code>~/.declaude-backups/</code> and is fully restorable:
-        </p>
-        <pre><code>git -C &lt;repo&gt; fetch ~/.declaude-backups/&lt;name&gt;.bundle '*:*'</code></pre>
-        <p>Skip the backup with <code>--no-backup</code> (not recommended; you lose the restore point).</p>
+        <h2 id="backup">{t('nav.backup')}</h2>
+        <p><RichText>{t('docs.backup.p1')}</RichText></p>
+        <pre><code>{SNIPPETS.backup}</code></pre>
+        <p><RichText>{t('docs.backup.p2')}</RichText></p>
 
-        <h2 id="prevent">Prevent future attribution</h2>
-        <pre><code>declaude prevent</code></pre>
-        <p>
-          Sets <code>includeCoAuthoredBy: false</code> in{' '}
-          <code>~/.claude/settings.json</code>. Future Claude Code commits and PRs
-          won't add an attribution trailer.
-        </p>
+        <h2 id="prevent">{t('docs.prevent.h')}</h2>
+        <pre><code>{SNIPPETS.prevent}</code></pre>
+        <p><RichText>{t('docs.prevent.p')}</RichText></p>
 
-        <h2 id="dev">Development</h2>
-        <pre><code>pip install -e ".[dev]"   # editable install with test deps{'\n'}python -m pytest          # run the scrubber tests{'\n'}python -m declaude --help # run without installing the console script</code></pre>
+        <h2 id="dev">{t('nav.development')}</h2>
+        <pre><code>{SNIPPETS.dev}</code></pre>
       </main>
     </div>
   )
@@ -346,18 +346,33 @@ function DocsPage({ onHome }) {
 /* ── app shell ── */
 export default function App() {
   const [page, setPage] = useState('home')
+  const [lang, setLang] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('declaude-lang')
+      if (saved && LANGS.some((l) => l.code === saved)) return saved
+    }
+    return detectLang()
+  })
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem('declaude-lang', lang)
+    if (typeof document !== 'undefined') document.documentElement.lang = lang
+  }, [lang])
+
+  const ctx = { lang, setLang, t: makeT(lang) }
 
   return (
-    <>
+    <LangCtx.Provider value={ctx}>
       <nav className="nav">
         <div className="nav-inner">
           <div className="nav-logo" onClick={() => setPage('home')}>
             <span className="lg-de">de</span><span className="lg-claude">claude</span>
           </div>
           <div className="nav-actions">
+            <LangPicker />
             <button className="btn btn-primary"
                     onClick={() => setPage(page === 'docs' ? 'home' : 'docs')}>
-              {page === 'docs' ? 'Home' : 'Docs'}
+              {page === 'docs' ? ctx.t('nav.home') : ctx.t('nav.docs')}
             </button>
           </div>
         </div>
@@ -366,6 +381,6 @@ export default function App() {
       {page === 'home'
         ? <LandingPage onDocs={() => setPage('docs')} />
         : <DocsPage onHome={() => setPage('home')} />}
-    </>
+    </LangCtx.Provider>
   )
 }
