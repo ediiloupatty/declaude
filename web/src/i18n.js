@@ -37,6 +37,7 @@ export const SNIPPETS = {
   pipx: 'python -m pip install --user pipx\npython -m pipx ensurepath\npipx install declaude',
   usage: "declaude OWNER/REPO\ndeclaude https://github.com/OWNER/REPO\n\ndeclaude my-repo --dry-run     # show the plan, change nothing\ndeclaude my-repo -y            # skip the confirmation prompt\ndeclaude my-repo --no-refresh  # clean + push only, skip refresh commit\ndeclaude my-repo --no-backup   # skip backup bundle (not recommended)\n\ndeclaude prevent               # turn off attribution going forward\ndeclaude --version             # print the installed version",
   backup: "git -C <repo> fetch ~/.declaude-backups/<name>.bundle '*:*'",
+  trailer: 'Co-Authored-By: Claude <noreply@anthropic.com>',
   prevent: 'declaude prevent',
   dev: 'pip install -e ".[dev]"   # editable install with test deps\npython -m pytest          # run the scrubber tests\npython -m declaude --help # run without installing the console script',
 }
@@ -162,6 +163,7 @@ const STRINGS = {
   'nav.group.dev': { en: 'Development', id: 'Pengembangan', zh: '开发', ja: '開発', ko: '개발', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', pt: 'Desenvolvimento', ru: 'Разработка', hi: 'डेवलपमेंट' },
 
   // ── docs sidebar items / section headings ──
+  'nav.why': { en: 'Why @claude appears', id: 'Kenapa @claude muncul', zh: '为什么会出现 @claude', ja: 'なぜ @claude が現れるのか', ko: '@claude가 나타나는 이유', de: 'Warum @claude erscheint', fr: 'Pourquoi @claude apparaît', es: 'Por qué aparece @claude', pt: 'Por que @claude aparece', ru: 'Почему появляется @claude', hi: '@claude क्यों दिखता है' },
   'nav.install': { en: 'Install', id: 'Instalasi', zh: '安装', ja: 'インストール', ko: '설치', de: 'Installation', fr: 'Installation', es: 'Instalación', pt: 'Instalação', ru: 'Установка', hi: 'इंस्टॉल' },
   'nav.usage': { en: 'Usage', id: 'Penggunaan', zh: '用法', ja: '使い方', ko: '사용법', de: 'Verwendung', fr: 'Utilisation', es: 'Uso', pt: 'Uso', ru: 'Использование', hi: 'उपयोग' },
   'nav.commands': { en: 'Commands', id: 'Perintah', zh: '命令', ja: 'コマンド', ko: '명령어', de: 'Befehle', fr: 'Commandes', es: 'Comandos', pt: 'Comandos', ru: 'Команды', hi: 'कमांड' },
@@ -186,6 +188,47 @@ const STRINGS = {
     pt: 'Remova a atribuição Claude/IA de um repo do GitHub em um comando. Ele remove os trailers de coautor do histórico de commits, faz force-push dos branches limpos e limpa o cache do gráfico de contribuidores do GitHub para que `@claude` realmente suma.',
     ru: 'Удалите упоминание Claude/AI из репозитория GitHub одной командой. Она убирает строки co-author из истории коммитов, выполняет force-push очищенных веток и сбрасывает кеш графа участников GitHub, чтобы `@claude` действительно исчез.',
     hi: 'एक ही कमांड में GitHub repo से Claude/AI का श्रेय हटाएँ। यह commit इतिहास से co-author trailers हटाता है, साफ़ branches को force-push करता है, और GitHub के Contributors ग्राफ़ का cache फ्लश करता है ताकि `@claude` सच में गायब हो जाए।',
+  },
+
+  'docs.why.h': { en: 'Why @claude appears', id: 'Kenapa @claude muncul', zh: '为什么会出现 @claude', ja: 'なぜ @claude が現れるのか', ko: '@claude가 나타나는 이유', de: 'Warum @claude erscheint', fr: 'Pourquoi @claude apparaît', es: 'Por qué aparece @claude', pt: 'Por que @claude aparece', ru: 'Почему появляется @claude', hi: '@claude क्यों दिखता है' },
+  'docs.why.p1': {
+    en: 'When you commit with Claude Code (the Claude CLI), it appends a trailer to your commit message:',
+    id: 'Saat kamu commit memakai Claude Code (Claude CLI), ia menambahkan trailer ke pesan commit-mu:',
+    zh: '当你使用 Claude Code（Claude CLI）提交时，它会在你的提交信息中追加一行 trailer：',
+    ja: 'Claude Code（Claude CLI）でコミットすると、コミットメッセージに次のような trailer が追加されます：',
+    ko: 'Claude Code(Claude CLI)로 커밋하면 커밋 메시지에 다음과 같은 trailer가 추가됩니다：',
+    de: 'Wenn du mit Claude Code (der Claude CLI) committest, hängt es einen Trailer an deine Commit-Nachricht an:',
+    fr: 'Quand vous committez avec Claude Code (la CLI Claude), il ajoute un trailer à votre message de commit :',
+    es: 'Cuando haces commit con Claude Code (la CLI de Claude), añade un trailer a tu mensaje de commit:',
+    pt: 'Quando você faz commit com o Claude Code (a CLI do Claude), ele anexa um trailer à sua mensagem de commit:',
+    ru: 'Когда вы делаете коммит через Claude Code (CLI Claude), он добавляет в сообщение коммита строку-trailer:',
+    hi: 'जब आप Claude Code (Claude CLI) से commit करते हैं, तो यह आपके commit संदेश में एक trailer जोड़ देता है:',
+  },
+  'docs.why.p2': {
+    en: 'GitHub reads that `Co-Authored-By` trailer and counts Claude as a contributor — so `@claude` shows up in your repo\'s **Insights → Contributors** graph, even though you authored the commit. It\'s on by default in Claude Code, not something you turned on. The same applies to pull requests opened via the CLI, which can carry a "Generated with Claude Code" line.',
+    id: 'GitHub membaca trailer `Co-Authored-By` itu dan menghitung Claude sebagai kontributor — jadi `@claude` muncul di grafik **Insights → Contributors** repo-mu, meski kamu yang menjadi author commit-nya. Ini aktif secara default di Claude Code, bukan sesuatu yang kamu nyalakan. Hal yang sama berlaku untuk pull request yang dibuat lewat CLI, yang bisa memuat baris "Generated with Claude Code".',
+    zh: 'GitHub 会读取这个 `Co-Authored-By` trailer，并把 Claude 算作贡献者——于是 `@claude` 出现在你仓库的 **Insights → Contributors** 图谱中，尽管提交的作者是你。这在 Claude Code 中默认开启，并非你主动设置。通过 CLI 创建的拉取请求同样如此，可能带有一行 “Generated with Claude Code”。',
+    ja: 'GitHub はこの `Co-Authored-By` trailer を読み取り、Claude をコントリビューターとして数えます。そのため、コミットの作者があなたであっても、リポジトリの **Insights → Contributors** グラフに `@claude` が表示されます。これは Claude Code でデフォルトで有効になっており、あなたが設定したものではありません。CLI で作成したプルリクエストも同様で、「Generated with Claude Code」の行を含むことがあります。',
+    ko: 'GitHub은 이 `Co-Authored-By` trailer를 읽어 Claude를 기여자로 집계합니다 — 그래서 커밋의 작성자가 당신이더라도 저장소의 **Insights → Contributors** 그래프에 `@claude`가 나타납니다. 이는 Claude Code에서 기본으로 켜져 있으며, 당신이 켠 설정이 아닙니다. CLI로 연 풀 리퀘스트도 마찬가지로 “Generated with Claude Code” 줄을 포함할 수 있습니다.',
+    de: 'GitHub liest diesen `Co-Authored-By`-Trailer und zählt Claude als Mitwirkenden — daher erscheint `@claude` im **Insights → Contributors**-Graphen deines Repos, obwohl du der Autor des Commits bist. In Claude Code ist das standardmäßig aktiv, nichts, was du eingeschaltet hast. Dasselbe gilt für über die CLI erstellte Pull Requests, die eine Zeile „Generated with Claude Code" enthalten können.',
+    fr: 'GitHub lit ce trailer `Co-Authored-By` et compte Claude comme contributeur — donc `@claude` apparaît dans le graphe **Insights → Contributors** de votre dépôt, même si vous êtes l\'auteur du commit. C\'est activé par défaut dans Claude Code, ce n\'est pas vous qui l\'avez activé. Il en va de même pour les pull requests ouvertes via la CLI, qui peuvent contenir une ligne « Generated with Claude Code ».',
+    es: 'GitHub lee ese trailer `Co-Authored-By` y cuenta a Claude como contribuyente, así que `@claude` aparece en el gráfico **Insights → Contributors** de tu repo, aunque tú seas el autor del commit. Está activado por defecto en Claude Code, no es algo que activaste tú. Lo mismo ocurre con los pull requests abiertos mediante la CLI, que pueden incluir una línea «Generated with Claude Code».',
+    pt: 'O GitHub lê esse trailer `Co-Authored-By` e conta o Claude como contribuidor — então `@claude` aparece no gráfico **Insights → Contributors** do seu repo, mesmo que você seja o autor do commit. Isso vem ativado por padrão no Claude Code, não é algo que você ligou. O mesmo vale para pull requests abertos pela CLI, que podem conter uma linha "Generated with Claude Code".',
+    ru: 'GitHub читает этот trailer `Co-Authored-By` и считает Claude соавтором — поэтому `@claude` появляется в графе **Insights → Contributors** вашего репозитория, хотя автор коммита — вы. В Claude Code это включено по умолчанию, вы это не настраивали. То же касается pull request, созданных через CLI: в них может быть строка «Generated with Claude Code».',
+    hi: 'GitHub उस `Co-Authored-By` trailer को पढ़ता है और Claude को contributor मानता है — इसलिए commit का author आप होने के बावजूद आपके repo के **Insights → Contributors** ग्राफ़ में `@claude` दिखता है। यह Claude Code में डिफ़ॉल्ट रूप से चालू रहता है, आपने इसे चालू नहीं किया। CLI से खोले गए pull requests पर भी यही लागू होता है, जिनमें "Generated with Claude Code" लाइन हो सकती है।',
+  },
+  'docs.why.p3': {
+    en: 'declaude removes those trailers from your existing history, and `declaude prevent` stops Claude Code from adding new ones going forward.',
+    id: 'declaude menghapus trailer itu dari riwayat yang sudah ada, dan `declaude prevent` mencegah Claude Code menambahkannya lagi ke depan.',
+    zh: 'declaude 会从你现有的历史中移除这些 trailer，而 `declaude prevent` 可阻止 Claude Code 今后再添加它们。',
+    ja: 'declaude は既存の履歴からそれらの trailer を削除し、`declaude prevent` は今後 Claude Code が新たに追加するのを止めます。',
+    ko: 'declaude는 기존 기록에서 그 trailer들을 제거하고, `declaude prevent`는 앞으로 Claude Code가 새로 추가하지 못하게 합니다.',
+    de: 'declaude entfernt diese Trailer aus deiner bestehenden Historie, und `declaude prevent` verhindert, dass Claude Code künftig neue hinzufügt.',
+    fr: "declaude supprime ces trailers de votre historique existant, et `declaude prevent` empêche Claude Code d'en ajouter de nouveaux à l'avenir.",
+    es: 'declaude elimina esos trailers de tu historial existente, y `declaude prevent` evita que Claude Code añada nuevos en el futuro.',
+    pt: 'O declaude remove esses trailers do seu histórico existente, e `declaude prevent` impede que o Claude Code adicione novos daqui em diante.',
+    ru: 'declaude удаляет эти trailer из вашей существующей истории, а `declaude prevent` не даёт Claude Code добавлять новые в будущем.',
+    hi: 'declaude इन trailers को आपके मौजूदा इतिहास से हटा देता है, और `declaude prevent` आगे Claude Code को नए जोड़ने से रोकता है।',
   },
 
   'docs.install.p1': {

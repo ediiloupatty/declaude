@@ -203,7 +203,7 @@ function LandingPage({ onDocs }) {
 /* ── docs page (with scroll-spy) ── */
 const NAV = [
   { group: 'nav.group.start', items: [
-    ['install', 'nav.install'], ['usage', 'nav.usage'], ['commands', 'nav.commands'],
+    ['why', 'nav.why'], ['install', 'nav.install'], ['usage', 'nav.usage'], ['commands', 'nav.commands'],
   ]},
   { group: 'nav.group.ref', items: [
     ['options', 'nav.options'], ['requirements', 'nav.requirements'], ['caveats', 'nav.caveats'],
@@ -216,7 +216,7 @@ const NAV = [
 
 function DocsPage({ onHome }) {
   const { t } = useT()
-  const [active, setActive] = useState('install')
+  const [active, setActive] = useState('why')
 
   useEffect(() => {
     const ids = NAV.flatMap(g => g.items.map(([id]) => id))
@@ -257,6 +257,12 @@ function DocsPage({ onHome }) {
 
         <h1>declaude</h1>
         <p className="lead"><RichText>{t('docs.lead')}</RichText></p>
+
+        <h2 id="why">{t('docs.why.h')}</h2>
+        <p><RichText>{t('docs.why.p1')}</RichText></p>
+        <pre><code>{SNIPPETS.trailer}</code></pre>
+        <p><RichText>{t('docs.why.p2')}</RichText></p>
+        <p><RichText>{t('docs.why.p3')}</RichText></p>
 
         <h2 id="install">{t('nav.install')}</h2>
         <pre><code>{SNIPPETS.install}</code></pre>
