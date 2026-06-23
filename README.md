@@ -1,6 +1,6 @@
 # declaude
 
-**Remove Claude/AI attribution from a GitHub repo — in one command.**
+**Remove Claude/AI attribution from a GitHub repo in one command.**
 
 ```bash
 declaude OWNER/REPO
