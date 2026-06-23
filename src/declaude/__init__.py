@@ -21,6 +21,7 @@ It runs even when the history is already clean: in that case it just does the
 flush + refresh commit, which is exactly what a previously-cleaned repo needs.
 
 Also:
+    declaude path                 # add declaude's install dir to PATH (so `declaude` runs)
     declaude prevent              # stop Claude Code adding the trailer going forward
 
 Requires: git and gh (GitHub CLI, logged in). git-filter-repo ships as a
@@ -435,6 +436,129 @@ def declaude(target: str, *, yes: bool, dry_run: bool, no_refresh: bool, no_back
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ── path (put declaude's Scripts dir on PATH) ──────────────────────────────────
+def _scripts_dirs() -> list[str]:
+    """Candidate directories where pip installs the `declaude` executable,
+    most-likely first. Uses the same sysconfig lookup install.ps1 relies on, so
+    a plain `pip install --user` and a system install are both covered."""
+    import sysconfig
+    schemes = set(sysconfig.get_scheme_names())
+    order = ("nt_user", "nt") if os.name == "nt" else ("posix_user", "posix_prefix")
+    out: list[str] = []
+    for scheme in order:
+        if scheme not in schemes:
+            continue
+        try:
+            p = sysconfig.get_path("scripts", scheme)
+        except Exception:
+            p = None
+        if p and p not in out:
+            out.append(p)
+    return out
+
+
+def _exe_name() -> str:
+    return "declaude.exe" if os.name == "nt" else "declaude"
+
+
+def _find_scripts_dir() -> str | None:
+    """The Scripts dir actually holding declaude's launcher, falling back to the
+    most-likely candidate if the launcher isn't found (e.g. layout differs)."""
+    dirs = _scripts_dirs()
+    exe = _exe_name()
+    for d in dirs:
+        if d and os.path.exists(os.path.join(d, exe)):
+            return d
+    return dirs[0] if dirs else None
+
+
+def _on_path(scripts: str) -> bool:
+    """True if `scripts` is already on the *current* process PATH."""
+    target = os.path.normcase(os.path.normpath(scripts))
+    for p in os.environ.get("PATH", "").split(os.pathsep):
+        if p and os.path.normcase(os.path.normpath(p)) == target:
+            return True
+    return False
+
+
+def _add_path_windows(scripts: str) -> bool:
+    """Add `scripts` to the persistent *user* PATH (HKCU\\Environment) if missing.
+    Returns True if it was added, False if already present. Broadcasts the change
+    so newly opened terminals pick it up without a logout."""
+    import winreg
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
+                        winreg.KEY_READ | winreg.KEY_WRITE) as key:
+        try:
+            cur, typ = winreg.QueryValueEx(key, "Path")
+        except FileNotFoundError:
+            cur, typ = "", winreg.REG_EXPAND_SZ
+        parts = [p for p in cur.split(";") if p]
+        want = os.path.normcase(scripts.rstrip("\\"))
+        if any(os.path.normcase(p.rstrip("\\")) == want for p in parts):
+            return False
+        parts.append(scripts)
+        winreg.SetValueEx(key, "Path", 0, typ or winreg.REG_EXPAND_SZ, ";".join(parts))
+    try:  # tell running programs the environment changed (best-effort)
+        import ctypes
+        ctypes.windll.user32.SendMessageTimeoutW(
+            0xFFFF, 0x1A, 0, "Environment", 0x0002, 5000,
+            ctypes.byref(ctypes.c_ulong()))
+    except Exception:
+        pass
+    return True
+
+
+def _rc_file() -> Path:
+    """The shell startup file to extend on macOS/Linux, based on $SHELL."""
+    shell = os.environ.get("SHELL", "")
+    home = Path(os.path.expanduser("~"))
+    if "zsh" in shell:
+        return home / ".zshrc"
+    if "bash" in shell:
+        bashrc = home / ".bashrc"
+        return bashrc if bashrc.exists() else (home / ".bash_profile")
+    return home / ".profile"
+
+
+def _add_path_posix(scripts: str) -> tuple[bool, Path]:
+    """Append a PATH export for `scripts` to the shell rc file if not present.
+    Returns (added, rc_file)."""
+    rc = _rc_file()
+    existing = rc.read_text() if rc.exists() else ""
+    if scripts in existing:
+        return False, rc
+    block = f'\n# added by declaude path\nexport PATH="{scripts}:$PATH"\n'
+    with open(rc, "a", encoding="utf-8") as f:
+        f.write(block)
+    return True, rc
+
+
+def cmd_path():
+    """Put declaude's install (Scripts) directory on PATH so the bare `declaude`
+    command works — the one thing `pip install` can't do on its own."""
+    scripts = _find_scripts_dir()
+    if not scripts:
+        die("could not locate the directory where declaude is installed.")
+    if not os.path.exists(os.path.join(scripts, _exe_name())):
+        info(col(f"note: no {_exe_name()} found in {scripts} yet — adding it anyway.", "y"))
+
+    if os.name == "nt":
+        if _add_path_windows(scripts):
+            info(col(f"Added to your user PATH: {scripts}", "g"))
+            info("Open a NEW terminal, then run:  declaude --help")
+        else:
+            info(col(f"Already on your user PATH: {scripts}", "g"))
+            if not _on_path(scripts):
+                info("Open a NEW terminal for it to take effect.")
+    else:
+        added, rc = _add_path_posix(scripts)
+        if added:
+            info(col(f"Added to PATH via {rc}: {scripts}", "g"))
+            info(f"Reload your shell or run:  source {rc}")
+        else:
+            info(col(f"Already configured in {rc}: {scripts}", "g"))
+
+
 # ── prevent ───────────────────────────────────────────────────────────────────
 def cmd_prevent():
     import json
@@ -460,12 +584,16 @@ def main():
     argv = sys.argv[1:]
     if argv and argv[0] == "prevent":
         return cmd_prevent()
+    if argv and argv[0] == "path":
+        return cmd_path()
 
     p = argparse.ArgumentParser(
         prog="declaude",
         description="Remove Claude/AI attribution from a GitHub repo "
                     "(clean history + force-push + refresh Contributors graph).",
-        epilog="Other: `declaude prevent` turns off Claude Code attribution going forward.")
+        epilog="Other: `declaude path` puts the install dir on your PATH so the "
+               "`declaude` command works; `declaude prevent` turns off Claude Code "
+               "attribution going forward.")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     p.add_argument("target", help="GitHub URL or OWNER/REPO slug")
     p.add_argument("-y", "--yes", action="store_true", help="skip confirmation")

@@ -256,7 +256,12 @@ function DocsPage({ onHome }) {
           folder isn't on your PATH. Run it like this and it always works:
         </p>
         <pre><code>python -m declaude OWNER/REPO{'\n'}python -m declaude --help</code></pre>
-        <p>Prefer the short <code>declaude</code> command? Install with pipx:</p>
+        <p>
+          Prefer the short <code>declaude</code> command? The quickest fix is to let
+          declaude add its own install directory to your PATH, then open a new terminal:
+        </p>
+        <pre><code>python -m declaude path</code></pre>
+        <p>Or install with pipx, which sets up PATH for you:</p>
         <pre><code>python -m pip install --user pipx{'\n'}python -m pipx ensurepath{'\n'}pipx install declaude</code></pre>
 
         <h2 id="usage">Usage</h2>
@@ -272,6 +277,7 @@ function DocsPage({ onHome }) {
             <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
             <tbody>
               <tr><td><code>declaude TARGET [flags]</code></td><td>Clean history + force-push + refresh contributors graph. TARGET = GitHub URL or OWNER/REPO.</td></tr>
+              <tr><td><code>declaude path</code></td><td>Add declaude's install (Scripts) directory to your PATH so the bare <code>declaude</code> command works.</td></tr>
               <tr><td><code>declaude prevent</code></td><td>Set <code>includeCoAuthoredBy:false</code> in <code>~/.claude/settings.json</code>.</td></tr>
               <tr><td><code>declaude --version</code></td><td>Print the installed version.</td></tr>
             </tbody>

@@ -87,8 +87,17 @@ python -m declaude ediiloupatty/my-repo
 python -m declaude --help
 ```
 
-Prefer the short `declaude` command? Either install with **pipx**, which sets up
-PATH for you:
+Prefer the short `declaude` command? The quickest fix is to let declaude add its
+own install directory to your PATH:
+
+```cmd
+python -m declaude path
+```
+
+Then **open a new terminal** and `declaude` works on its own. (Works on
+macOS/Linux too, where it appends a PATH line to your shell rc file.)
+
+Or install with **pipx**, which sets up PATH for you:
 
 ```cmd
 python -m pip install --user pipx
@@ -179,6 +188,7 @@ git -C <repo> fetch ~/.declaude-backups/<name>.bundle '*:*'
 | Command | Purpose |
 |---|---|
 | `declaude TARGET [-y] [--dry-run] [--no-refresh] [--no-backup]` | Clean history + force-push + refresh contributors graph. `TARGET` = GitHub URL or `OWNER/REPO`. |
+| `declaude path` | Add declaude's install (Scripts) directory to your PATH so the bare `declaude` command works. |
 | `declaude prevent` | Set `includeCoAuthoredBy:false` in `~/.claude/settings.json`. |
 | `declaude --version` | Print the installed version. |
 
