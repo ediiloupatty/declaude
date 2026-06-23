@@ -535,6 +535,35 @@
   font-size: inherit; color: inherit;
 }
 
+/* copyable code block */
+.codeblock { position: relative; }
+.codeblock > pre { padding-right: 4.25rem; }
+.codeblock-copy {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--code-text);
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  padding: 0.24rem 0.6rem;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.codeblock:hover .codeblock-copy { opacity: 1; }
+.codeblock-copy:hover { background: rgba(255, 255, 255, 0.18); }
+.codeblock-copy:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 1px; }
+.codeblock-copy.copied {
+  opacity: 1;
+  color: #7ee787;
+  border-color: rgba(126, 231, 135, 0.45);
+  background: rgba(126, 231, 135, 0.12);
+}
+
 .docs-content .callout {
   background: var(--accent-soft);
   border: 1px solid rgba(217, 119, 87, 0.25);

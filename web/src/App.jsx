@@ -52,6 +52,26 @@ function CopyBtn({ text }) {
   )
 }
 
+/* ── copyable code block (used throughout the docs) ── */
+function CodeBlock({ code }) {
+  const { t } = useT()
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+  return (
+    <div className="codeblock">
+      <pre><code>{code}</code></pre>
+      <button type="button" className={`codeblock-copy${copied ? ' copied' : ''}`}
+              onClick={copy} aria-label={copied ? t('common.copied') : t('common.copy')}>
+        {copied ? t('common.copied') : t('common.copy')}
+      </button>
+    </div>
+  )
+}
+
 /* ── animated contributor-removal demo ── */
 function ContributorDemo() {
   const { t } = useT()
@@ -265,27 +285,27 @@ function DocsPage({ onHome }) {
         <p><RichText>{t('docs.why.p3')}</RichText></p>
 
         <h2 id="install">{t('nav.install')}</h2>
-        <pre><code>{SNIPPETS.install}</code></pre>
+        <CodeBlock code={SNIPPETS.install} />
         <p>{t('docs.install.p1')}</p>
-        <pre><code>{SNIPPETS.installGit}</code></pre>
+        <CodeBlock code={SNIPPETS.installGit} />
         <p><RichText>{t('docs.install.p2')}</RichText></p>
-        <pre><code>{SNIPPETS.ghInstall}</code></pre>
+        <CodeBlock code={SNIPPETS.ghInstall} />
         <div className="callout">
           <strong>{t('docs.install.calloutLabel')}</strong> <RichText>{t('docs.install.callout')}</RichText>
         </div>
         <p>{t('docs.install.p3')}</p>
-        <pre><code>{SNIPPETS.ghLogin}</code></pre>
+        <CodeBlock code={SNIPPETS.ghLogin} />
 
         <h3>{t('docs.install.h3')}</h3>
         <p><RichText>{t('docs.install.p4')}</RichText></p>
-        <pre><code>{SNIPPETS.winRun}</code></pre>
+        <CodeBlock code={SNIPPETS.winRun} />
         <p><RichText>{t('docs.install.p5')}</RichText></p>
-        <pre><code>{SNIPPETS.path}</code></pre>
+        <CodeBlock code={SNIPPETS.path} />
         <p>{t('docs.install.p6')}</p>
-        <pre><code>{SNIPPETS.pipx}</code></pre>
+        <CodeBlock code={SNIPPETS.pipx} />
 
         <h2 id="usage">{t('nav.usage')}</h2>
-        <pre><code>{SNIPPETS.usage}</code></pre>
+        <CodeBlock code={SNIPPETS.usage} />
         <p>{t('docs.usage.p')}</p>
 
         <h2 id="commands">{t('nav.commands')}</h2>
@@ -335,15 +355,15 @@ function DocsPage({ onHome }) {
 
         <h2 id="backup">{t('nav.backup')}</h2>
         <p><RichText>{t('docs.backup.p1')}</RichText></p>
-        <pre><code>{SNIPPETS.backup}</code></pre>
+        <CodeBlock code={SNIPPETS.backup} />
         <p><RichText>{t('docs.backup.p2')}</RichText></p>
 
         <h2 id="prevent">{t('docs.prevent.h')}</h2>
-        <pre><code>{SNIPPETS.prevent}</code></pre>
+        <CodeBlock code={SNIPPETS.prevent} />
         <p><RichText>{t('docs.prevent.p')}</RichText></p>
 
         <h2 id="dev">{t('nav.development')}</h2>
-        <pre><code>{SNIPPETS.dev}</code></pre>
+        <CodeBlock code={SNIPPETS.dev} />
       </main>
     </div>
   )
