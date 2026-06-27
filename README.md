@@ -12,6 +12,10 @@ Claude Code"_), force-pushes the cleaned branches, and **refreshes GitHub's
 Contributors graph** so `@claude` actually disappears — all without touching your
 code or your commit authorship.
 
+## Video
+
+[![Video](https://img.youtube.com/vi/yff224ijtYU/0.jpg)](https://youtu.be/yff224ijtYU?si=dgbEFNq_h3ASYj3n)
+
 ## Why `@claude` won't go away by itself
 
 AI tools append a `Co-Authored-By: Claude …` trailer to commits, and GitHub's
