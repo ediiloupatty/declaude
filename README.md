@@ -14,7 +14,11 @@ code or your commit authorship.
 
 ## Video
 
-[![Video](https://img.youtube.com/vi/yff224ijtYU/0.jpg)](https://youtu.be/yff224ijtYU?si=dgbEFNq_h3ASYj3n)
+<div align="center">
+  <a href="https://youtu.be/yff224ijtYU?si=dgbEFNq_h3ASYj3n">
+    <img src="https://img.youtube.com/vi/yff224ijtYU/0.jpg" alt="Video">
+  </a>
+</div>
 
 ## Why `@claude` won't go away by itself
 
